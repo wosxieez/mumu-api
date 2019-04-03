@@ -346,12 +346,12 @@ router.post('/update_score', async (ctx, next) => {
       var loser = await Users.findOne({ where: { username: loserusername } })
       var groupLoser = await GroupUsers.findOne({ where: { gid, uid: loser.dataValues.id } })
       await GroupUsers.update(
-        { fs: groupLoser.dataValues.fs - score },
+        { fs: numSub(groupLoser.dataValues.fs, score) },
         { where: { id: groupLoser.dataValues.id } })
       // 增加winner分
       var winner = await Users.findOne({ where: { username: winnerusername } })
       var groupWinner = await GroupUsers.findOne({ where: { gid, uid: winner.dataValues.id } })
-      await GroupUsers.update({ fs: groupWinner.dataValues.fs + score - tc }, { where: { id: groupWinner.dataValues.id } })
+      await GroupUsers.update({ fs: numAdd(groupWinner.dataValues.fs, numSub(score, tc)) }, { where: { id: groupWinner.dataValues.id } })
 
       // 赢家管理抽成
       var groupWinnerParent = await GroupUsers.findOne({ where: { gid, uid: groupWinner.dataValues.pid } })
@@ -359,20 +359,20 @@ router.post('/update_score', async (ctx, next) => {
         if (groupWinnerParent.dataValues.ll === 1) { // 二级管理
           var groupWinnerParentParent = await GroupUsers.findOne({ where: { gid, uid: groupWinnerParent.dataValues.pid } })
           if (groupWinnerParentParent && groupWinnerParentParent.dataValues.ll == 2) { // 一级管理
-            await GroupUsers.update({ fs: groupWinnerParentParent.dataValues.fs + tc2 - tc1 },
+            await GroupUsers.update({ fs: numAdd(groupWinnerParentParent.dataValues.fs, numSub(tc2, tc1)) },
               { where: { id: groupWinnerParentParent.dataValues.id } })
-            await GroupUsers.update({ fs: groupWinnerParent.dataValues.fs + tc1 },
+            await GroupUsers.update({ fs: numAdd(groupWinnerParent.dataValues.fs, tc1) },
               { where: { id: groupWinnerParent.dataValues.id } })
-            tc = tc - tc2
+            tc = numSub(tc, tc2)
           } else {
-            await GroupUsers.update({ fs: groupWinnerParent.dataValues.fs + tc1 },
+            await GroupUsers.update({ fs: numAdd(groupWinnerParent.dataValues.fs, tc1) },
               { where: { id: groupWinnerParent.dataValues.id } })
-            tc = tc - tc1
+            tc = numSub(tc, tc1)
           }
         } else if (groupWinnerParent.dataValues.ll === 2) { // 一级管理
-          await GroupUsers.update({ fs: groupWinnerParent.dataValues.fs + tc2 },
+          await GroupUsers.update({ fs: numAdd(groupWinnerParent.dataValues.fs, tc2) },
             { where: { id: groupWinnerParent.dataValues.id } })
-          tc = tc - tc2
+          tc = numSub(tc, tc2)
         }
       }
 
@@ -382,20 +382,20 @@ router.post('/update_score', async (ctx, next) => {
         if (groupLoserParent.dataValues.ll === 1) { // 二级管理
           var groupLoserParentParent = await GroupUsers.findOne({ where: { gid, uid: groupLoserParent.dataValues.pid } })
           if (groupLoserParentParent && groupLoserParentParent.dataValues.ll == 2) { // 一级管理
-            await GroupUsers.update({ fs: groupLoserParentParent.dataValues.fs + tc2 - tc1 },
+            await GroupUsers.update({ fs: numAdd(groupLoserParentParent.dataValues.fs, numSub(tc2, tc1)) },
               { where: { id: groupLoserParentParent.dataValues.id } })
-            await GroupUsers.update({ fs: groupLoserParent.dataValues.fs + tc1 },
+            await GroupUsers.update({ fs: numAdd(groupLoserParent.dataValues.fs, tc1) },
               { where: { id: groupLoserParent.dataValues.id } })
-            tc = tc - tc2
+            tc = numSub(tc, tc2)
           } else {
-            await GroupUsers.update({ fs: groupLoserParent.dataValues.fs + tc1 },
+            await GroupUsers.update({ fs: numAdd(groupLoserParent.dataValues.fs, tc1) },
               { where: { id: groupLoserParent.dataValues.id } })
-            tc = tc - tc1
+            tc = numSub(tc, tc1)
           }
         } else if (groupLoserParent.dataValues.ll === 2) { // 一级管理
-          await GroupUsers.update({ fs: groupLoserParent.dataValues.fs + tc2 },
+          await GroupUsers.update({ fs: numAdd(groupLoserParent.dataValues.fs, tc2) },
             { where: { id: groupLoserParent.dataValues.id } })
-          tc = tc - tc2
+          tc = numSub(tc, tc2)
         }
       }
 
@@ -403,12 +403,12 @@ router.post('/update_score', async (ctx, next) => {
       var level3User = await GroupUsers.findOne({ where: { gid, ll: 3 } })
       if (level3User) {
         console.log('副馆长提成', tc)
-        await GroupUsers.update({ fs: level3User.dataValues.fs + tc }, { where: { id: level3User.dataValues.id } })
+        await GroupUsers.update({ fs: numAdd(level3User.dataValues.fs, tc) }, { where: { id: level3User.dataValues.id } })
       } else {
         var level4User = await GroupUsers.findOne({ where: { gid, ll: 4 } })
         if (level4User) {
           console.log('馆长提成', tc)
-          await GroupUsers.update({ fs: level4User.dataValues.fs + tc }, { where: { id: level4User.dataValues.id } })
+          await GroupUsers.update({ fs: numAdd(level4User.dataValues.fs, tc) }, { where: { id: level4User.dataValues.id } })
         }
       }
 
@@ -432,6 +432,45 @@ router.post('/update_score', async (ctx, next) => {
     ctx.response.body = { code: -1, data: 'update fault' }
   }
 })
+
+function numAdd(num1, num2) {
+	var baseNum, baseNum1, baseNum2;
+	try {
+		baseNum1 = num1.toString().split(".")[1].length;
+	} catch (e) {
+		baseNum1 = 0;
+	}
+	try {
+		baseNum2 = num2.toString().split(".")[1].length;
+	} catch (e) {
+		baseNum2 = 0;
+	}
+	baseNum = Math.pow(10, Math.max(baseNum1, baseNum2));
+	return (num1 * baseNum + num2 * baseNum) / baseNum;
+}
+
+/**
+ * 加法运算，避免数据相减小数点后产生多位数和计算精度损失。
+ * 
+ * @param num1被减数  |  num2减数
+ */
+function numSub(num1, num2) {
+	var baseNum, baseNum1, baseNum2;
+	var precision;// 精度
+	try {
+		baseNum1 = num1.toString().split(".")[1].length;
+	} catch (e) {
+		baseNum1 = 0;
+	}
+	try {
+		baseNum2 = num2.toString().split(".")[1].length;
+	} catch (e) {
+		baseNum2 = 0;
+	}
+	baseNum = Math.pow(10, Math.max(baseNum1, baseNum2));
+	precision = (baseNum1 >= baseNum2) ? baseNum1 : baseNum2;
+	return ((num1 * baseNum - num2 * baseNum) / baseNum).toFixed(precision);
+}
 
 // add router middleware:
 app.use(router.routes())
