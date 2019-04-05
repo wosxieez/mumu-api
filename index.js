@@ -224,6 +224,7 @@ var GroupUsers = sequelize.define(
     pid: Sequelize.INTEGER(11),
     fs: Sequelize.DOUBLE,
     ll: Sequelize.INTEGER(11),
+    tc: Sequelize.FLOAT
   },
   {
     timestamps: true
