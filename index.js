@@ -23,6 +23,11 @@ var sequelize = new Sequelize(
   }
 )
 
+router.get('/version_update', async (ctx, next) => {
+  ctx.response.type = 'json'
+  ctx.response.body = { code: 0, vn: '1.0.0', ul: 'https://fir.im/niuniu1' }
+})
+
 router.get('/crossdomain.xml', async (ctx, next) => {
   ctx.response.type = 'text/xml'
   ctx.response.body = '<?xml version="1.0"?>' +
@@ -51,11 +56,43 @@ var Users = sequelize.define(
   }
 )
 
+router.post('/login', async (ctx, next) => {
+  // body {un pwd vn}
+  try {
+    if (ctx.request.body.un == '1.0.0') {
+      ctx.response.type = 'json'
+      ctx.response.body = { code: -2, data: '登录失败，请升级到最新版本' }
+    } else {
+      var all = await Users.findAll({
+        where: {
+          username: ctx.request.body.un,
+          password: ctx.request.body.pwd
+        }
+      })
+      ctx.response.type = 'json'
+      ctx.response.body = { code: 0, us: all, ss: "106.14.148.139" }
+    }
+  } catch (error) {
+    console.log(error)
+    ctx.response.type = 'json'
+    ctx.response.body = { code: -1, data: 'find fault' }
+  }
+})
 router.post('/insert_user', async (ctx, next) => {
   try {
-    await Users.create(ctx.request.body)
-    ctx.response.type = 'json'
-    ctx.response.body = { code: 0, data: 'success' }
+    var all = await Users.findAll({
+      where: {
+        username: ctx.request.body.username
+      }
+    })
+    if (all && all.length > 0) {
+      ctx.response.type = 'json'
+      ctx.response.body = { code: -2, data: '注册失败 该玩家已经存在' }
+    } else {
+      await Users.create(ctx.request.body)
+      ctx.response.type = 'json'
+      ctx.response.body = { code: 0, data: 'success' }
+    }
   } catch (error) {
     console.log(error)
     ctx.response.type = 'json'
@@ -434,19 +471,19 @@ router.post('/update_score', async (ctx, next) => {
 })
 
 function numAdd(num1, num2) {
-	var baseNum, baseNum1, baseNum2;
-	try {
-		baseNum1 = num1.toString().split(".")[1].length;
-	} catch (e) {
-		baseNum1 = 0;
-	}
-	try {
-		baseNum2 = num2.toString().split(".")[1].length;
-	} catch (e) {
-		baseNum2 = 0;
-	}
-	baseNum = Math.pow(10, Math.max(baseNum1, baseNum2));
-	return (num1 * baseNum + num2 * baseNum) / baseNum;
+  var baseNum, baseNum1, baseNum2;
+  try {
+    baseNum1 = num1.toString().split(".")[1].length;
+  } catch (e) {
+    baseNum1 = 0;
+  }
+  try {
+    baseNum2 = num2.toString().split(".")[1].length;
+  } catch (e) {
+    baseNum2 = 0;
+  }
+  baseNum = Math.pow(10, Math.max(baseNum1, baseNum2));
+  return (num1 * baseNum + num2 * baseNum) / baseNum;
 }
 
 /**
@@ -455,21 +492,21 @@ function numAdd(num1, num2) {
  * @param num1被减数  |  num2减数
  */
 function numSub(num1, num2) {
-	var baseNum, baseNum1, baseNum2;
-	var precision;// 精度
-	try {
-		baseNum1 = num1.toString().split(".")[1].length;
-	} catch (e) {
-		baseNum1 = 0;
-	}
-	try {
-		baseNum2 = num2.toString().split(".")[1].length;
-	} catch (e) {
-		baseNum2 = 0;
-	}
-	baseNum = Math.pow(10, Math.max(baseNum1, baseNum2));
-	precision = (baseNum1 >= baseNum2) ? baseNum1 : baseNum2;
-	return ((num1 * baseNum - num2 * baseNum) / baseNum).toFixed(precision);
+  var baseNum, baseNum1, baseNum2;
+  var precision;// 精度
+  try {
+    baseNum1 = num1.toString().split(".")[1].length;
+  } catch (e) {
+    baseNum1 = 0;
+  }
+  try {
+    baseNum2 = num2.toString().split(".")[1].length;
+  } catch (e) {
+    baseNum2 = 0;
+  }
+  baseNum = Math.pow(10, Math.max(baseNum1, baseNum2));
+  precision = (baseNum1 >= baseNum2) ? baseNum1 : baseNum2;
+  return ((num1 * baseNum - num2 * baseNum) / baseNum).toFixed(precision);
 }
 
 // add router middleware:
