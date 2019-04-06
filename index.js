@@ -70,7 +70,11 @@ router.post('/login', async (ctx, next) => {
         }
       })
       ctx.response.type = 'json'
-      ctx.response.body = { code: 0, us: all, ss: "106.14.148.139" }
+      ctx.response.body = {
+        code: 0,
+        us: all, ss: "106.14.148.139",
+        hs: 'http://hefeixiaomu.com:3008/'
+      }
     }
   } catch (error) {
     console.log(error)
