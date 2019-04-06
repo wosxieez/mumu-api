@@ -59,7 +59,7 @@ var Users = sequelize.define(
 router.post('/login', async (ctx, next) => {
   // body {un pwd vn}
   try {
-    if (ctx.request.body.un == '1.0.0') {
+    if (ctx.request.body.vn != '1.0.0') {
       ctx.response.type = 'json'
       ctx.response.body = { code: -2, data: '登录失败，请升级到最新版本' }
     } else {
@@ -366,6 +366,7 @@ router.post('/update_rule', async (ctx, next) => {
 })
 
 router.post('/update_score', async (ctx, next) => {
+  console.log(ctx.request.body)
   try {
     var rid = ctx.request.body.rid
     var winnerusername = ctx.request.body.winner
@@ -382,58 +383,46 @@ router.post('/update_score', async (ctx, next) => {
 
       // 扣除loser分
       var loser = await Users.findOne({ where: { username: loserusername } })
-      var groupLoser = await GroupUsers.findOne({ where: { gid, uid: loser.dataValues.id } })
-      await GroupUsers.update(
-        { fs: numSub(groupLoser.dataValues.fs, score) },
-        { where: { id: groupLoser.dataValues.id } })
+      var groupLoser = null
+      if (loser) {
+        groupLoser = await GroupUsers.findOne({ where: { gid, uid: loser.dataValues.id } })
+        if (groupLoser) {
+          await GroupUsers.update({ fs: numSub(groupLoser.dataValues.fs, score) }, { where: { id: groupLoser.dataValues.id } })
+        }
+      }
+
       // 增加winner分
       var winner = await Users.findOne({ where: { username: winnerusername } })
-      var groupWinner = await GroupUsers.findOne({ where: { gid, uid: winner.dataValues.id } })
-      await GroupUsers.update({ fs: numAdd(groupWinner.dataValues.fs, numSub(score, tc)) }, { where: { id: groupWinner.dataValues.id } })
-
-      // 赢家管理抽成
-      var groupWinnerParent = await GroupUsers.findOne({ where: { gid, uid: groupWinner.dataValues.pid } })
-      if (groupWinnerParent) {
-        if (groupWinnerParent.dataValues.ll === 1) { // 二级管理
-          var groupWinnerParentParent = await GroupUsers.findOne({ where: { gid, uid: groupWinnerParent.dataValues.pid } })
-          if (groupWinnerParentParent && groupWinnerParentParent.dataValues.ll == 2) { // 一级管理
-            await GroupUsers.update({ fs: numAdd(groupWinnerParentParent.dataValues.fs, numSub(tc2, tc1)) },
-              { where: { id: groupWinnerParentParent.dataValues.id } })
-            await GroupUsers.update({ fs: numAdd(groupWinnerParent.dataValues.fs, tc1) },
-              { where: { id: groupWinnerParent.dataValues.id } })
-            tc = numSub(tc, tc2)
-          } else {
-            await GroupUsers.update({ fs: numAdd(groupWinnerParent.dataValues.fs, tc1) },
-              { where: { id: groupWinnerParent.dataValues.id } })
-            tc = numSub(tc, tc1)
-          }
-        } else if (groupWinnerParent.dataValues.ll === 2) { // 一级管理
-          await GroupUsers.update({ fs: numAdd(groupWinnerParent.dataValues.fs, tc2) },
-            { where: { id: groupWinnerParent.dataValues.id } })
-          tc = numSub(tc, tc2)
+      var groupWinner = null
+      if (winner) {
+        groupWinner = await GroupUsers.findOne({ where: { gid, uid: winner.dataValues.id } })
+        if (groupWinner) {
+          await GroupUsers.update({ fs: numAdd(groupWinner.dataValues.fs, numSub(score, tc)) }, { where: { id: groupWinner.dataValues.id } })
         }
       }
 
       // 输家管理抽成
-      var groupLoserParent = await GroupUsers.findOne({ where: { gid, uid: groupLoser.dataValues.pid } })
-      if (groupLoserParent) {
-        if (groupLoserParent.dataValues.ll === 1) { // 二级管理
-          var groupLoserParentParent = await GroupUsers.findOne({ where: { gid, uid: groupLoserParent.dataValues.pid } })
-          if (groupLoserParentParent && groupLoserParentParent.dataValues.ll == 2) { // 一级管理
-            await GroupUsers.update({ fs: numAdd(groupLoserParentParent.dataValues.fs, numSub(tc2, tc1)) },
-              { where: { id: groupLoserParentParent.dataValues.id } })
-            await GroupUsers.update({ fs: numAdd(groupLoserParent.dataValues.fs, tc1) },
+      if (groupLoser) {
+        var groupLoserParent = await GroupUsers.findOne({ where: { gid, uid: groupLoser.dataValues.pid } })
+        if (groupLoserParent) {
+          if (groupLoserParent.dataValues.ll === 1) { // 二级管理
+            var groupLoserParentParent = await GroupUsers.findOne({ where: { gid, uid: groupLoserParent.dataValues.pid } })
+            if (groupLoserParentParent && groupLoserParentParent.dataValues.ll == 2) { // 一级管理
+              await GroupUsers.update({ fs: numAdd(groupLoserParentParent.dataValues.fs, numSub(tc2, tc1)) },
+                { where: { id: groupLoserParentParent.dataValues.id } })
+              await GroupUsers.update({ fs: numAdd(groupLoserParent.dataValues.fs, tc1) },
+                { where: { id: groupLoserParent.dataValues.id } })
+              tc = numSub(tc, tc2)
+            } else {
+              await GroupUsers.update({ fs: numAdd(groupLoserParent.dataValues.fs, tc1) },
+                { where: { id: groupLoserParent.dataValues.id } })
+              tc = numSub(tc, tc1)
+            }
+          } else if (groupLoserParent.dataValues.ll === 2) { // 一级管理
+            await GroupUsers.update({ fs: numAdd(groupLoserParent.dataValues.fs, tc2) },
               { where: { id: groupLoserParent.dataValues.id } })
             tc = numSub(tc, tc2)
-          } else {
-            await GroupUsers.update({ fs: numAdd(groupLoserParent.dataValues.fs, tc1) },
-              { where: { id: groupLoserParent.dataValues.id } })
-            tc = numSub(tc, tc1)
           }
-        } else if (groupLoserParent.dataValues.ll === 2) { // 一级管理
-          await GroupUsers.update({ fs: numAdd(groupLoserParent.dataValues.fs, tc2) },
-            { where: { id: groupLoserParent.dataValues.id } })
-          tc = numSub(tc, tc2)
         }
       }
 
@@ -452,9 +441,11 @@ router.post('/update_score', async (ctx, next) => {
 
     } else {
       // 扣除loser分
-      var loser = await Users.findOne({ where: { username: loserusername } })
-      var groupLoser = await GroupUsers.findOne({ where: { gid, uid: loser.dataValues.id } })
-      await GroupUsers.update({ fs: groupLoser.dataValues.fs - score }, { where: { id: groupLoser.dataValues.id } })
+      if (loser) {
+        var loser = await Users.findOne({ where: { username: loserusername } })
+        var groupLoser = await GroupUsers.findOne({ where: { gid, uid: loser.dataValues.id } })
+        await GroupUsers.update({ fs: groupLoser.dataValues.fs - score }, { where: { id: groupLoser.dataValues.id } })
+      }
 
       // 增加winner分
       var winner = await Users.findOne({ where: { username: winnerusername } })
@@ -464,10 +455,12 @@ router.post('/update_score', async (ctx, next) => {
 
     ctx.response.type = 'json'
     ctx.response.body = { code: 0, data: 'update success' }
+    console.log('update score success')
   } catch (error) {
     console.log(error)
     ctx.response.type = 'json'
     ctx.response.body = { code: -1, data: 'update fault' }
+    console.log('update score fault')
   }
 })
 
