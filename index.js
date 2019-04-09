@@ -242,9 +242,20 @@ var GroupUsers = sequelize.define(
 router.post('/insert_groupuser', async (ctx, next) => {
   console.log(ctx.request.body)
   try {
-    await GroupUsers.create(ctx.request.body)
-    ctx.response.type = 'json'
-    ctx.response.body = { code: 0, data: 'success' }
+    var all = await GroupUsers.findAll({
+      where: {
+        gid: ctx.request.body.gid,
+        uid: ctx.request.body.uid
+      }
+    })
+    if (all && all.length > 0) {
+      ctx.response.type = 'json'
+      ctx.response.body = { code: -2, data: '添加群成员失败 该成员已经在群里' }
+    } else {
+      await GroupUsers.create(ctx.request.body)
+      ctx.response.type = 'json'
+      ctx.response.body = { code: 0, data: 'success' }
+    }
   } catch (error) {
     console.log(error)
     ctx.response.type = 'json'
