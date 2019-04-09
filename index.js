@@ -454,7 +454,7 @@ router.post('/update_score', async (ctx, next) => {
                 { where: { id: groupLoserParent.dataValues.id } })
               tc = numSub(tc, tc2)
             } else {
-              console.log('l 2 add', tc1s)
+              console.log('l 2 add', tc1)
               await GroupUsers.update({ fs: numAdd(groupLoserParent.dataValues.fs, tc1) },
                 { where: { id: groupLoserParent.dataValues.id } })
               tc = numSub(tc, tc1)
