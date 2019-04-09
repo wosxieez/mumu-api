@@ -25,7 +25,7 @@ var sequelize = new Sequelize(
 
 router.get('/version_update', async (ctx, next) => {
   ctx.response.type = 'json'
-  ctx.response.body = { code: 0, vn: '1.0.0', ul: 'https://fir.im/niuniu1' }
+  ctx.response.body = { code: 0, vn: '1.0.3', ul: 'https://fir.im/niuniu1' }
 })
 
 router.get('/crossdomain.xml', async (ctx, next) => {
@@ -50,6 +50,9 @@ var Users = sequelize.define(
     ll: Sequelize.INTEGER(11),
     username: Sequelize.STRING(100),
     password: Sequelize.STRING(100),
+	fc: Sequelize.INTEGER(11),
+	qd: Sequelize.STRING(100),
+	jb: Sequelize.INTEGER(11)
   },
   {
     timestamps: true
@@ -59,23 +62,25 @@ var Users = sequelize.define(
 router.post('/login', async (ctx, next) => {
   // body {un pwd vn}
   try {
-    if (ctx.request.body.vn != '1.0.0') {
-      ctx.response.type = 'json'
-      ctx.response.body = { code: -2, data: '登录失败，请升级到最新版本' }
-    } else {
+    //if (ctx.request.body.vn != '1.0.2') {
+      //ctx.response.type = 'json'
+      //ctx.response.body = { code: -2, data: '登录失败，请升级到最新版本' }
+    //} else {
       var all = await Users.findAll({
         where: {
           username: ctx.request.body.un,
           password: ctx.request.body.pwd
         }
       })
+	  // ss: "106.14.148.139",
       ctx.response.type = 'json'
       ctx.response.body = {
         code: 0,
-        us: all, ss: "106.14.148.139",
+        us: all, 
+		ss: "114.115.165.189",
         hs: 'http://hefeixiaomu.com:3008/'
       }
-    }
+   // }
   } catch (error) {
     console.log(error)
     ctx.response.type = 'json'
@@ -154,8 +159,7 @@ var Groups = sequelize.define(
       primaryKey: true,
       autoIncrement: true
     },
-    groupname: Sequelize.STRING(100),
-    fc: Sequelize.INTEGER(11)
+    groupname: Sequelize.STRING(100)
   },
   {
     timestamps: true
@@ -310,7 +314,8 @@ var Rules = sequelize.define(
     tc2: Sequelize.FLOAT,
     tc1: Sequelize.FLOAT,
     tc: Sequelize.FLOAT,
-    tf: Sequelize.FLOAT
+    tf: Sequelize.FLOAT,
+	plz: Sequelize.INTEGER(11),
   },
   {
     timestamps: true
