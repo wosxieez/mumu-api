@@ -159,7 +159,8 @@ var Groups = sequelize.define(
       primaryKey: true,
       autoIncrement: true
     },
-    groupname: Sequelize.STRING(100)
+    groupname: Sequelize.STRING(100),
+    ss: Sequelize.STRING(100)
   },
   {
     timestamps: true
