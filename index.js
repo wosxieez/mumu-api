@@ -558,7 +558,7 @@ router.post('/update_score', async (ctx, next) => {
             if (groupLoserParentParent && groupLoserParentParent.dataValues.ll == 2) {
               groupLoser1 = groupLoserParentParent // 一级管理员
               l1id = groupLoser1.dataValues.uid
-              l1tc = nnumSub(tc2, tc1)
+              l1tc = numSub(tc2, tc1)
               l1tfs = numAdd(groupLoser1.dataValues.fs, l1tc)
               l2id = groupLoser2.dataValues.uid
               l2tc = tc1
