@@ -495,7 +495,7 @@ router.post('/update_score', async (ctx, next) => {
     var groupLoser2
     var groupLoser1
     var groupWinner
-    var gruopWinner2
+    var groupWinner2
     var groupWinner1
 
     if (wfs >= rule.dataValues.tf) {
@@ -521,19 +521,19 @@ router.post('/update_score', async (ctx, next) => {
         var groupWinnerParent = await GroupUsers.findOne({ where: { gid, uid: groupWinner.dataValues.pid } })
         if (groupWinnerParent) {
           if (groupWinnerParent.dataValues.ll === 1) {
-            gruopWinner2 = groupWinnerParent // 赢家2级管理员
-            var groupWinnerParentParent = await GroupUsers.findOne({ where: { gid, uid: gruopWinner2.dataValues.pid } })
+            groupWinner2 = groupWinnerParent // 赢家2级管理员
+            var groupWinnerParentParent = await GroupUsers.findOne({ where: { gid, uid: groupWinner2.dataValues.pid } })
             if (groupWinnerParentParent && groupWinnerParentParent.dataValues.ll == 2) {
               groupWinner1 = groupWinnerParentParent // 赢家1级管理员
               w1id = groupWinner1.dataValues.uid
               w1tc = numSub(tc2, tc1)
               w1tfs = numAdd(groupWinner1.dataValues.fs, w1tc)
-              w2id = gruopWinner2.dataValues.uid
+              w2id = groupWinner2.dataValues.uid
               w2tc = tc1
               w2tfs = numAdd(groupWinner2.dataValues.fs, w2tc)
               tc = numSub(tc, tc2)
             } else {
-              w2id = gruopWinner2.dataValues.uid
+              w2id = groupWinner2.dataValues.uid
               w2tc = tc1
               w2tfs = numAdd(groupWinner2.dataValues.fs, w2tc)
               tc = numSub(tc, tc1)
