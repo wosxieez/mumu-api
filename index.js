@@ -644,29 +644,33 @@ router.post('/update_score', async (ctx, next) => {
     console.log('馆长分数', ztfs)
     console.log('============================update_score============================')
 
-    if (wid > 0) { await GroupUsers.update({ fs: wtfs }, { where: { gid: gid, uid: wid } }) }
-    if (lid > 0) { await GroupUsers.update({ fs: ltfs }, { where: { gid: gid, uid: lid } }) }
-    if (w1id > 0) { await GroupUsers.update({ fs: w1tfs }, { where: { gid: gid, uid: w1id } }) }
-    if (w2id > 0) { await GroupUsers.update({ fs: w2tfs }, { where: { gid: gid, uid: w2id } }) }
-    if (l1id > 0) { await GroupUsers.update({ fs: l1tfs }, { where: { gid: gid, uid: l1id } }) }
-    if (l2id > 0) { await GroupUsers.update({ fs: l2tfs }, { where: { gid: gid, uid: l2id } }) }
-    if (zid > 0) { await GroupUsers.update({ fs: ztfs }, { where: { gid: gid, uid: zid } }) }
+    if (wid > 0 && lid > 0) {
+      if (wid > 0) { await GroupUsers.update({ fs: wtfs }, { where: { gid: gid, uid: wid } }) }
+      if (lid > 0) { await GroupUsers.update({ fs: ltfs }, { where: { gid: gid, uid: lid } }) }
+      if (w1id > 0) { await GroupUsers.update({ fs: w1tfs }, { where: { gid: gid, uid: w1id } }) }
+      if (w2id > 0) { await GroupUsers.update({ fs: w2tfs }, { where: { gid: gid, uid: w2id } }) }
+      if (l1id > 0) { await GroupUsers.update({ fs: l1tfs }, { where: { gid: gid, uid: l1id } }) }
+      if (l2id > 0) { await GroupUsers.update({ fs: l2tfs }, { where: { gid: gid, uid: l2id } }) }
+      if (zid > 0) { await GroupUsers.update({ fs: ztfs }, { where: { gid: gid, uid: zid } }) }
+      await Fight.create({
+        gid, rn, run, tc: tc0,
+        wid, wn, wfs, wtfs,
+        lid, ln, lfs, ltfs,
+        w2id, w2tc, w2tfs,
+        w1id, w1tc, w1tfs,
+        l1id, l1tc, l1tfs,
+        l2id, l2tc, l2tfs,
+        zid, ztc, ztfs
+      })
 
-    console.log('============================update_succe============================')
-    await Fight.create({
-      gid, rn, run, tc: tc0,
-      wid, wn, wfs, wtfs,
-      lid, ln, lfs, ltfs,
-      w2id, w2tc, w2tfs,
-      w1id, w1tc, w1tfs,
-      l1id, l1tc, l1tfs,
-      l2id, l2tc, l2tfs,
-      zid, ztc, ztfs
-    })
-
-    ctx.response.type = 'json'
-    ctx.response.body = { code: 0, data: 'update success' }
-    console.log('update score success')
+      ctx.response.type = 'json'
+      ctx.response.body = { code: 0, data: 'update success' }
+      console.log('update score success')
+    } else {
+      ctx.response.type = 'json'
+      ctx.response.body = { code: -1, data: 'update fault, can not found winner or loser' }
+      console.log('update score fault')
+    }
   } catch (error) {
     console.log(error)
     ctx.response.type = 'json'
