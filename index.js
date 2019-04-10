@@ -72,15 +72,22 @@ router.post('/login', async (ctx, next) => {
         password: ctx.request.body.pwd
       }
     })
-    // ss: "106.14.148.139",
-    ctx.response.type = 'json'
-    ctx.response.body = {
-      code: 0,
-      us: all,
-      ss: "114.115.165.189",
-      hs: 'http://hefeixiaomu.com:3008/'
-    }
-    // }
+	if (all && all.length > 0) {
+		// ss: "106.14.148.139",
+		ctx.response.type = 'json'
+		ctx.response.body = {
+			code: 0,
+			us: all,
+			ss: "114.115.165.189",
+			hs: 'http://hefeixiaomu.com:3008/'
+		}
+	} else {
+		ctx.response.type = 'json'
+		ctx.response.body = {
+			code: -2,
+			data: '用户名密码错误'
+		}
+	}
   } catch (error) {
     console.log(error)
     ctx.response.type = 'json'
@@ -89,6 +96,11 @@ router.post('/login', async (ctx, next) => {
 })
 router.post('/insert_user', async (ctx, next) => {
   try {
+    if (ctx.request.body.username == "" || ctx.request.body.password == "" ) {
+      ctx.response.type = 'json'
+      ctx.response.body = { code: -2, data: '用户名/密码不能为空' }
+      return
+    }
     var all = await Users.findAll({
       where: {
         username: ctx.request.body.username
@@ -319,12 +331,12 @@ router.post('/update_gus', async (ctx, next) => {
     var adder = await GroupUsers.findOne({ where: { gid: ctx.request.body.gid, uid: tid } })
     if (adder) {
       aid = adder.dataValues.id
-      afs = adder.dataValues.fs + ss
+      afs = numAdd(adder.dataValues.fs, ss)
     }
     var remover = await GroupUsers.findOne({ where: { gid: ctx.request.body.gid, uid: fid } })
     if (remover) {
       rid = remover.dataValues.id
-      rfs = remover.dataValues.fs - ss
+      rfs = numSub(remover.dataValues.fs, ss)
     }
 
     console.log('============================add_score============================')
