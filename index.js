@@ -759,7 +759,7 @@ var Fight = sequelize.define(
 
 router.post('/find_fight', async (ctx, next) => {
   try {
-    var all = await fights.findAll({
+    var all = await Fight.findAll({
       where: ctx.request.body
     })
     ctx.response.type = 'json'
