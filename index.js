@@ -512,7 +512,8 @@ router.post('/update_score', async (ctx, next) => {
         wid = winner.dataValues.id
         groupWinner = await GroupUsers.findOne({ where: { gid, uid: wid } })
         if (groupWinner) {
-          wtfs = numAdd(groupWinner.dataValues.fs, numSub(wfs, tc))
+          wfs = numSub(wfs, tc)
+          wtfs = numAdd(groupWinner.dataValues.fs, wfs)
         }
       }
 
