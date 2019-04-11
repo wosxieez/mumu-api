@@ -72,22 +72,22 @@ router.post('/login', async (ctx, next) => {
         password: ctx.request.body.pwd
       }
     })
-	if (all && all.length > 0) {
-		// ss: "106.14.148.139",
-		ctx.response.type = 'json'
-		ctx.response.body = {
-			code: 0,
-			us: all,
-			ss: "114.115.165.189",
-			hs: 'http://hefeixiaomu.com:3008/'
-		}
-	} else {
-		ctx.response.type = 'json'
-		ctx.response.body = {
-			code: -2,
-			data: '用户名密码错误'
-		}
-	}
+    if (all && all.length > 0) {
+      // ss: "106.14.148.139",
+      ctx.response.type = 'json'
+      ctx.response.body = {
+        code: 0,
+        us: all,
+        ss: "114.115.165.189",
+        hs: 'http://hefeixiaomu.com:3008/'
+      }
+    } else {
+      ctx.response.type = 'json'
+      ctx.response.body = {
+        code: -2,
+        data: '用户名密码错误'
+      }
+    }
   } catch (error) {
     console.log(error)
     ctx.response.type = 'json'
@@ -96,7 +96,7 @@ router.post('/login', async (ctx, next) => {
 })
 router.post('/insert_user', async (ctx, next) => {
   try {
-    if (ctx.request.body.username == "" || ctx.request.body.password == "" ) {
+    if (ctx.request.body.username == "" || ctx.request.body.password == "") {
       ctx.response.type = 'json'
       ctx.response.body = { code: -2, data: '用户名/密码不能为空' }
       return
@@ -519,6 +519,7 @@ router.post('/update_score', async (ctx, next) => {
           ltfs = numSub(groupLoser.dataValues.fs, wfs)
         }
       }
+
       var winner = await Users.findOne({ where: { username: wn } })
       if (winner) {
         wid = winner.dataValues.id
@@ -529,11 +530,23 @@ router.post('/update_score', async (ctx, next) => {
         }
       }
 
+      // 更新分数
+      if (lid > 0 && wid > 0) {
+        await GroupUsers.update({ fs: ltfs }, { where: { gid: gid, uid: lid } })
+        await GroupUsers.update({ fs: wtfs }, { where: { gid: gid, uid: wid } })
+      }
+      else {
+        ctx.response.type = 'json'
+        ctx.response.body = { code: -2, data: 'update fault can not found loser or winner' }
+        return
+      }
+
       if (groupWinner) {
         var groupWinnerParent = await GroupUsers.findOne({ where: { gid, uid: groupWinner.dataValues.pid } })
         if (groupWinnerParent) {
           if (groupWinnerParent.dataValues.ll === 1) {
             groupWinner2 = groupWinnerParent // 赢家2级管理员
+
             var groupWinnerParentParent = await GroupUsers.findOne({ where: { gid, uid: groupWinner2.dataValues.pid } })
             if (groupWinnerParentParent && groupWinnerParentParent.dataValues.ll == 2) {
               groupWinner1 = groupWinnerParentParent // 赢家1级管理员
@@ -544,11 +557,18 @@ router.post('/update_score', async (ctx, next) => {
               w2tc = tc1
               w2tfs = numAdd(groupWinner2.dataValues.fs, w2tc)
               tc = numSub(tc, tc2)
+
+              // 更新分数
+              if (w1id > 0) { await GroupUsers.update({ fs: w1tfs }, { where: { gid: gid, uid: w1id } }) }
+              if (w2id > 0) { await GroupUsers.update({ fs: w2tfs }, { where: { gid: gid, uid: w2id } }) }
             } else {
               w2id = groupWinner2.dataValues.uid
               w2tc = tc1
               w2tfs = numAdd(groupWinner2.dataValues.fs, w2tc)
               tc = numSub(tc, tc1)
+
+              // 更新分数
+              if (w2id > 0) { await GroupUsers.update({ fs: w2tfs }, { where: { gid: gid, uid: w2id } }) }
             }
           } else if (groupWinnerParent.dataValues.ll === 2) {
             groupWinner1 = groupWinnerParent // 赢家1级管理员
@@ -556,6 +576,9 @@ router.post('/update_score', async (ctx, next) => {
             w1tc = tc2
             w1tfs = numAdd(groupWinner1.dataValues.fs, w1tc)
             tc = numSub(tc, tc2)
+
+            // 更新分数
+            if (w1id > 0) { await GroupUsers.update({ fs: w1tfs }, { where: { gid: gid, uid: w1id } }) }
           }
         }
       }
@@ -576,11 +599,18 @@ router.post('/update_score', async (ctx, next) => {
               l2tc = tc1
               l2tfs = numAdd(groupLoser2.dataValues.fs, l2tc)
               tc = numSub(tc, tc2)
+
+              // 更新分数
+              if (l1id > 0) { await GroupUsers.update({ fs: l1tfs }, { where: { gid: gid, uid: l1id } }) }
+              if (l2id > 0) { await GroupUsers.update({ fs: l2tfs }, { where: { gid: gid, uid: l2id } }) }
             } else {
               l2id = groupLoser2.dataValues.uid
               l2tc = tc1
               l2tfs = numAdd(groupLoser2.dataValues.fs, l2tc)
               tc = numSub(tc, tc1)
+
+              // 更新分数
+              if (l2id > 0) { await GroupUsers.update({ fs: l2tfs }, { where: { gid: gid, uid: l2id } }) }
             }
           } else if (groupLoserParent.dataValues.ll === 2) {
             groupLoser1 = groupLoserParent // 赢家1级管理员
@@ -588,6 +618,9 @@ router.post('/update_score', async (ctx, next) => {
             l1tc = tc2
             l1tfs = numAdd(groupLoser1.dataValues.fs, l1tc)
             tc = numSub(tc, tc2)
+
+            // 更新分数
+            if (l1id > 0) { await GroupUsers.update({ fs: l1tfs }, { where: { gid: gid, uid: l1id } }) }
           }
         }
       }
@@ -607,6 +640,9 @@ router.post('/update_score', async (ctx, next) => {
         }
       }
 
+      // 更新分数
+      if (zid > 0) { await GroupUsers.update({ fs: ztfs }, { where: { gid: gid, uid: zid } }) }
+
     } else {
       // 积分小于提成分数 
       var loser = await Users.findOne({ where: { username: ln } })
@@ -624,6 +660,17 @@ router.post('/update_score', async (ctx, next) => {
         if (groupWinner) {
           wtfs = numAdd(groupWinner.dataValues.fs, wfs)
         }
+      }
+
+      // 更新分数
+      if (lid > 0 && wid > 0) {
+        await GroupUsers.update({ fs: ltfs }, { where: { gid: gid, uid: lid } })
+        await GroupUsers.update({ fs: wtfs }, { where: { gid: gid, uid: wid } })
+      }
+      else {
+        ctx.response.type = 'json'
+        ctx.response.body = { code: -2, data: 'update fault can not found loser or winner' }
+        return
       }
     }
 
@@ -657,13 +704,6 @@ router.post('/update_score', async (ctx, next) => {
     console.log('============================update_score============================')
 
     if (wid > 0 && lid > 0) {
-      if (wid > 0) { await GroupUsers.update({ fs: wtfs }, { where: { gid: gid, uid: wid } }) }
-      if (lid > 0) { await GroupUsers.update({ fs: ltfs }, { where: { gid: gid, uid: lid } }) }
-      if (w1id > 0) { await GroupUsers.update({ fs: w1tfs }, { where: { gid: gid, uid: w1id } }) }
-      if (w2id > 0) { await GroupUsers.update({ fs: w2tfs }, { where: { gid: gid, uid: w2id } }) }
-      if (l1id > 0) { await GroupUsers.update({ fs: l1tfs }, { where: { gid: gid, uid: l1id } }) }
-      if (l2id > 0) { await GroupUsers.update({ fs: l2tfs }, { where: { gid: gid, uid: l2id } }) }
-      if (zid > 0) { await GroupUsers.update({ fs: ztfs }, { where: { gid: gid, uid: zid } }) }
       await Fight.create({
         gid, rn, run, tc: tc0,
         wid, wn, wfs, wtfs,
@@ -674,15 +714,11 @@ router.post('/update_score', async (ctx, next) => {
         l2id, l2tc, l2tfs,
         zid, ztc, ztfs
       })
-
-      ctx.response.type = 'json'
-      ctx.response.body = { code: 0, data: 'update success' }
-      console.log('update score success')
-    } else {
-      ctx.response.type = 'json'
-      ctx.response.body = { code: -1, data: 'update fault, can not found winner or loser' }
-      console.log('update score fault')
     }
+
+    ctx.response.type = 'json'
+    ctx.response.body = { code: 0, data: 'update success' }
+    console.log('update score success')
   } catch (error) {
     console.log(error)
     ctx.response.type = 'json'
