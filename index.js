@@ -1,12 +1,19 @@
 const Koa = require('koa')
-const bodyParser = require('koa-bodyparser')
-const router = require('koa-router')()
 const Sequelize = require('sequelize')
 const config = require('./config')
 const cors = require('koa2-cors');
+const koaBody = require('koa-body')
+const Router = require('koa-router');
+const router = new Router();
+const fs = require('fs')
+const path = require('path')
 const app = new Koa()
+const uuidv1 = require('uuid/v1')
+const send = require('koa-send');
+
 app.use(cors())
-app.use(bodyParser())
+app.use(koaBody({ multipart: true }));
+app.use(router.routes()).use(router.allowedMethods());
 
 var sequelize = new Sequelize(
   config.database,
@@ -824,8 +831,27 @@ router.post('/find_fight', async (ctx, next) => {
   }
 })
 
-// add router middleware:
-app.use(router.routes())
+
+router.post('/upload_audio', async (ctx, next) => {
+  // 上传单个文件
+  const file = ctx.request.files.audio; // 获取上传文件
+  const reader = fs.createReadStream(file.path)
+  const uuid = uuidv1()
+  let filePath = path.join(__dirname, 'public/upload/audios/') + `/${uuid}.wav`;
+  // // 创建可写流
+  const upStream = fs.createWriteStream(filePath);
+  // // 可读流通过管道写入可写流
+  reader.pipe(upStream);
+  ctx.response.type = 'json'
+  ctx.response.body = { code: 0, data: uuid }
+})
+
+router.post('/get_audio', async (ctx) => {
+  const uuid = ctx.request.body.uuid
+  let filePath = path.join('public/upload/audios/') + `/${uuid}.wav`;
+  ctx.attachment(filePath)
+  await send(ctx, filePath)
+})
 
 app.listen(3008)
 console.log('app started at port 3008...')
