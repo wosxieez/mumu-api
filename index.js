@@ -10,6 +10,7 @@ const path = require('path')
 const app = new Koa()
 const uuidv1 = require('uuid/v1')
 const send = require('koa-send');
+const moment = require('moment');
 
 app.use(cors())
 app.use(koaBody({ multipart: true }));
@@ -32,7 +33,7 @@ var sequelize = new Sequelize(
 
 router.get('/version_update', async (ctx, next) => {
   ctx.response.type = 'json'
-  ctx.response.body = { code: 0, vn: '1.0.3', ul: 'https://fir.im/niuniu1' }
+  ctx.response.body = { code: 0, vn: '1.0.7', ul: 'https://fir.im/niuniu1' }
 })
 
 router.get('/crossdomain.xml', async (ctx, next) => {
@@ -69,10 +70,10 @@ var Users = sequelize.define(
 router.post('/login', async (ctx, next) => {
   // body {un pwd vn}
   try {
-    //if (ctx.request.body.vn != '1.0.2') {
-    //ctx.response.type = 'json'
-    //ctx.response.body = { code: -2, data: '登录失败，请升级到最新版本' }
-    //} else {
+    if (ctx.request.body.vn != '1.0.7') {
+    ctx.response.type = 'json'
+    ctx.response.body = { code: -2, data: '登录失败，请升级到最新版本V1.0.7' }
+    } else {
     var all = await Users.findAll({
       where: {
         username: ctx.request.body.un,
@@ -85,7 +86,7 @@ router.post('/login', async (ctx, next) => {
       ctx.response.body = {
         code: 0,
         us: all,
-        ss: "114.115.165.189",
+        ss: "139.9.72.162",
         hs: 'http://hefeixiaomu.com:3008/'
       }
     } else {
@@ -95,6 +96,7 @@ router.post('/login', async (ctx, next) => {
         data: '用户名密码错误'
       }
     }
+	}
   } catch (error) {
     console.log(error)
     ctx.response.type = 'json'
@@ -834,6 +836,7 @@ router.post('/find_fight', async (ctx, next) => {
 
 router.post('/upload_audio', async (ctx, next) => {
   // 上传单个文件
+  console.log('upload audio')
   const file = ctx.request.files.audio; // 获取上传文件
   const reader = fs.createReadStream(file.path)
   const uuid = uuidv1()
@@ -847,10 +850,35 @@ router.post('/upload_audio', async (ctx, next) => {
 })
 
 router.post('/get_audio', async (ctx) => {
+	console.log('get audio')
   const uuid = ctx.request.body.uuid
   let filePath = path.join('public/upload/audios/') + `/${uuid}.wav`;
   ctx.attachment(filePath)
   await send(ctx, filePath)
+})
+
+router.post('/get_check_in',async(ctx)=>{
+  let formatDate = moment(new Date()).format('YYYY-MM-DD'); /*格式化时间*/
+	// console.log('formatDate:',formatDate)/*2019-04-17*/
+	try {
+		let allUsers = await Users.findAll({
+		where: ctx.request.body.query
+		})
+		if(allUsers[0].qd==formatDate){
+		ctx.response.type = 'json'
+		ctx.response.body = { code: -1, data: 'check_in repeat' }/*重复签到*/
+		return
+    }
+    await Users.update({qd:formatDate}, {
+      where: ctx.request.body.query
+    })
+    ctx.response.type = 'json'
+    ctx.response.body = { code: 0, data: 'check_in success' }
+  } catch (error) {
+    console.log(error)
+    ctx.response.type = 'json'
+    ctx.response.body = { code: -1, data: 'check_in fault' }
+  }
 })
 
 app.listen(3008)
