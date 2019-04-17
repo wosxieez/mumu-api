@@ -828,12 +828,12 @@ router.post('/update_gold', async (ctx, next) => {
     var score = ctx.request.body.score
     var loser = await Users.findOne({ where: { username: ln } })
     if (loser) {
-      await Users.update({ jb: numSub(loser.dataValues.jb, score * 10) }, {
+      await Users.update({ jb: numSub(loser.dataValues.jb, score) }, {
         where: { id: loser.dataValues.id }
       })
       var winner = await Users.findOne({ where: { username: wn } })
       if (winner) {
-        await Users.update({ jb: numAdd(winner.dataValues.jb, score * 10) }, {
+        await Users.update({ jb: numAdd(winner.dataValues.jb, score) }, {
           where: { id: winner.dataValues.id }
         })
       }
