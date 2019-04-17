@@ -70,10 +70,10 @@ var Users = sequelize.define(
 router.post('/login', async (ctx, next) => {
   // body {un pwd vn}
   try {
-    if (ctx.request.body.vn != '1.0.7') {
-    ctx.response.type = 'json'
-    ctx.response.body = { code: -2, data: '登录失败，请升级到最新版本V1.0.7' }
-    } else {
+    //if (ctx.request.body.vn != '1.0.7') {
+    //ctx.response.type = 'json'
+    //ctx.response.body = { code: -2, data: '登录失败，请升级到最新版本V1.0.7' }
+    //} else {
     var all = await Users.findAll({
       where: {
         username: ctx.request.body.un,
@@ -96,7 +96,7 @@ router.post('/login', async (ctx, next) => {
         data: '用户名密码错误'
       }
     }
-	}
+    //}
   } catch (error) {
     console.log(error)
     ctx.response.type = 'json'
@@ -135,6 +135,17 @@ router.post('/find_user', async (ctx, next) => {
     var all = await Users.findAll({
       where: ctx.request.body
     })
+    ctx.response.type = 'json'
+    ctx.response.body = { code: 0, data: all }
+  } catch (error) {
+    console.log(error)
+    ctx.response.type = 'json'
+    ctx.response.body = { code: -1, data: 'find fault' }
+  }
+})
+router.post('/find_user2', async (ctx, next) => {
+  try {
+    var all = await Users.findAll(ctx.request.body)
     ctx.response.type = 'json'
     ctx.response.body = { code: 0, data: all }
   } catch (error) {
@@ -467,6 +478,78 @@ router.post('/update_rule', async (ctx, next) => {
   }
 })
 
+//----------------------------------------------------applyrecord-----------------------------------------------------
+
+var Applyrecord = sequelize.define(
+  'applyrecord',
+  {
+    id: {
+      type: Sequelize.STRING(100),
+      primaryKey: true,
+      autoIncrement: true
+    },
+    uid: Sequelize.INTEGER(11),
+    pid: Sequelize.INTEGER(11),
+    gid: Sequelize.INTEGER(11),
+    finish: Sequelize.STRING(1),
+  },
+  {
+    timestamps: true
+  }
+)
+
+router.post('/insert_applyrecord', async (ctx, next) => {
+  try {
+    await Applyrecord.create(ctx.request.body)
+    ctx.response.type = 'json'
+    ctx.response.body = { code: 0, data: 'success' }
+  } catch (error) {
+    console.log(error)
+    ctx.response.type = 'json'
+    ctx.response.body = { code: -1, data: 'fault' }
+  }
+})
+
+router.post('/find_applyrecord', async (ctx, next) => {
+  try {
+    var all = await Applyrecord.findAll({
+      where: ctx.request.body
+    })
+    ctx.response.type = 'json'
+    ctx.response.body = { code: 0, data: all }
+  } catch (error) {
+    console.log(error)
+    ctx.response.type = 'json'
+    ctx.response.body = { code: -1, data: 'find fault' }
+  }
+})
+router.post('/remove_applyrecord', async (ctx, next) => {
+  try {
+    await Applyrecord.destroy({
+      where: ctx.request.body
+    })
+    ctx.response.type = 'json'
+    ctx.response.body = { code: 0, data: 'remove sucess' }
+  } catch (error) {
+    console.log(error)
+    ctx.response.type = 'json'
+    ctx.response.body = { code: -1, data: 'remove fault' }
+  }
+})
+router.post('/update_applyrecord', async (ctx, next) => {
+  try {
+    await Applyrecord.update(ctx.request.body.update, {
+      where: ctx.request.body.query
+    })
+    ctx.response.type = 'json'
+    ctx.response.body = { code: 0, data: 'update success' }
+  } catch (error) {
+    console.log(error)
+    ctx.response.type = 'json'
+    ctx.response.body = { code: -1, data: 'update fault' }
+  }
+})
+
 
 //----------------------------------------------------更新战绩-----------------------------------------------------
 
@@ -736,6 +819,38 @@ router.post('/update_score', async (ctx, next) => {
   }
 })
 
+//----------------------------------------------------更新金币-----------------------------------------------------
+
+router.post('/update_gold', async (ctx, next) => {
+  console.log('update_gold...', ctx.request.body)
+  try {
+    var wn = ctx.request.body.winner
+    var ln = ctx.request.body.loser
+    var score = ctx.request.body.score
+    var loser = await Users.findOne({ where: { username: ln } })
+    if (loser) {
+      await Users.update({jb: numSub(loser.dataValues.jb, score * 10)}, {
+        where: {id: loser.dataValues.id}
+      })
+      var winner = await Users.findOne({ where: { username: wn } })
+      if (winner) {
+        await Users.update({jb: numAdd(winner.dataValues.jb, score * 10)}, {
+          where: {id: winner.dataValues.id}
+        })
+      }
+    }
+    
+    ctx.response.type = 'json'
+    ctx.response.body = { code: 0, data: 'update success' }
+    console.log('update gold success')
+  } catch (error) {
+    console.log(error)
+    ctx.response.type = 'json'
+    ctx.response.body = { code: -1, data: 'update fault' }
+    console.log('update gold fault')
+  }
+})
+
 function numAdd(num1, num2) {
   var baseNum, baseNum1, baseNum2;
   try {
@@ -833,7 +948,6 @@ router.post('/find_fight', async (ctx, next) => {
   }
 })
 
-
 router.post('/upload_audio', async (ctx, next) => {
   // 上传单个文件
   console.log('upload audio')
@@ -850,26 +964,26 @@ router.post('/upload_audio', async (ctx, next) => {
 })
 
 router.post('/get_audio', async (ctx) => {
-	console.log('get audio')
+  console.log('get audio')
   const uuid = ctx.request.body.uuid
   let filePath = path.join('public/upload/audios/') + `/${uuid}.wav`;
   ctx.attachment(filePath)
   await send(ctx, filePath)
 })
 
-router.post('/get_check_in',async(ctx)=>{
+router.post('/get_check_in', async (ctx) => {
   let formatDate = moment(new Date()).format('YYYY-MM-DD'); /*格式化时间*/
-	// console.log('formatDate:',formatDate)/*2019-04-17*/
-	try {
-		let allUsers = await Users.findAll({
-		where: ctx.request.body.query
-		})
-		if(allUsers[0].qd==formatDate){
-		ctx.response.type = 'json'
-		ctx.response.body = { code: -1, data: 'check_in repeat' }/*重复签到*/
-		return
+  // console.log('formatDate:',formatDate)/*2019-04-17*/
+  try {
+    let allUsers = await Users.findAll({
+      where: ctx.request.body.query
+    })
+    if (allUsers[0].qd == formatDate) {
+      ctx.response.type = 'json'
+      ctx.response.body = { code: -1, data: 'check_in repeat' }/*重复签到*/
+      return
     }
-    await Users.update({qd:formatDate}, {
+    await Users.update({ qd: formatDate }, {
       where: ctx.request.body.query
     })
     ctx.response.type = 'json'
