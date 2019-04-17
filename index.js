@@ -489,7 +489,6 @@ var Applyrecord = sequelize.define(
       autoIncrement: true
     },
     uid: Sequelize.INTEGER(11),
-    pid: Sequelize.INTEGER(11),
     gid: Sequelize.INTEGER(11),
     finish: Sequelize.STRING(1),
   },
@@ -829,17 +828,17 @@ router.post('/update_gold', async (ctx, next) => {
     var score = ctx.request.body.score
     var loser = await Users.findOne({ where: { username: ln } })
     if (loser) {
-      await Users.update({jb: numSub(loser.dataValues.jb, score * 10)}, {
-        where: {id: loser.dataValues.id}
+      await Users.update({ jb: numSub(loser.dataValues.jb, score * 10) }, {
+        where: { id: loser.dataValues.id }
       })
       var winner = await Users.findOne({ where: { username: wn } })
       if (winner) {
-        await Users.update({jb: numAdd(winner.dataValues.jb, score * 10)}, {
-          where: {id: winner.dataValues.id}
+        await Users.update({ jb: numAdd(winner.dataValues.jb, score * 10) }, {
+          where: { id: winner.dataValues.id }
         })
       }
     }
-    
+
     ctx.response.type = 'json'
     ctx.response.body = { code: 0, data: 'update success' }
     console.log('update gold success')
@@ -947,6 +946,7 @@ router.post('/find_fight', async (ctx, next) => {
     ctx.response.body = { code: -1, data: 'find fault' }
   }
 })
+
 
 router.post('/upload_audio', async (ctx, next) => {
   // 上传单个文件
