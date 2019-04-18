@@ -33,7 +33,7 @@ var sequelize = new Sequelize(
 
 router.get('/version_update', async (ctx, next) => {
   ctx.response.type = 'json'
-  ctx.response.body = { code: 0, vn: '1.0.7', ul: 'https://fir.im/niuniu1' }
+  ctx.response.body = { code: 0, vn: '1.0.8', ul: 'https://fir.im/niuniu1' }
 })
 
 router.get('/crossdomain.xml', async (ctx, next) => {
@@ -70,10 +70,10 @@ var Users = sequelize.define(
 router.post('/login', async (ctx, next) => {
   // body {un pwd vn}
   try {
-    //if (ctx.request.body.vn != '1.0.7') {
-    //ctx.response.type = 'json'
-    //ctx.response.body = { code: -2, data: '登录失败，请升级到最新版本V1.0.7' }
-    //} else {
+    if (ctx.request.body.vn != '1.0.8') {
+    ctx.response.type = 'json'
+    ctx.response.body = { code: -2, data: '登录失败，请升级到最新版本V1.0.8\r NewGold' }
+    } else {
     var all = await Users.findAll({
       where: {
         username: ctx.request.body.un,
@@ -96,7 +96,7 @@ router.post('/login', async (ctx, next) => {
         data: '用户名密码错误'
       }
     }
-    //}
+    }
   } catch (error) {
     console.log(error)
     ctx.response.type = 'json'
@@ -262,6 +262,7 @@ var GroupUsers = sequelize.define(
     },
     gid: Sequelize.INTEGER(11),
     uid: Sequelize.INTEGER(11),
+    nn: Sequelize.STRING(100),
     pid: Sequelize.INTEGER(11),
     fs: Sequelize.DOUBLE,
     ll: Sequelize.INTEGER(11),
