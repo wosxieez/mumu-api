@@ -493,6 +493,7 @@ var Applyrecord = sequelize.define(
     gid: Sequelize.INTEGER(11),
     finish: Sequelize.STRING(1),
     result: Sequelize.STRING(1),
+    uname:Sequelize.STRING(100),
   },
   {
     timestamps: true
