@@ -57,6 +57,7 @@ var Users = sequelize.define(
     },
     ll: Sequelize.INTEGER(11),
     username: Sequelize.STRING(100),
+    mobile: Sequelize.STRING(100),
     password: Sequelize.STRING(100),
     fc: Sequelize.INTEGER(11),
     qd: Sequelize.STRING(100),
