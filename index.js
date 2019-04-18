@@ -71,31 +71,31 @@ router.post('/login', async (ctx, next) => {
   // body {un pwd vn}
   try {
     if (ctx.request.body.vn != '1.0.8') {
-    ctx.response.type = 'json'
-    ctx.response.body = { code: -2, data: '登录失败，请升级到最新版本V1.0.8\r NewGold' }
-    } else {
-    var all = await Users.findAll({
-      where: {
-        username: ctx.request.body.un,
-        password: ctx.request.body.pwd
-      }
-    })
-    if (all && all.length > 0) {
-      // ss: "106.14.148.139",
       ctx.response.type = 'json'
-      ctx.response.body = {
-        code: 0,
-        us: all,
-        ss: "139.9.72.162",
-        hs: 'http://hefeixiaomu.com:3008/'
-      }
+      ctx.response.body = { code: -2, data: '登录失败，请升级到最新版本V1.0.8\r NewGold' }
     } else {
-      ctx.response.type = 'json'
-      ctx.response.body = {
-        code: -2,
-        data: '用户名密码错误'
+      var all = await Users.findAll({
+        where: {
+          username: ctx.request.body.un,
+          password: ctx.request.body.pwd
+        }
+      })
+      if (all && all.length > 0) {
+        // ss: "106.14.148.139",
+        ctx.response.type = 'json'
+        ctx.response.body = {
+          code: 0,
+          us: all,
+          ss: "139.9.72.162",
+          hs: 'http://hefeixiaomu.com:3008/'
+        }
+      } else {
+        ctx.response.type = 'json'
+        ctx.response.body = {
+          code: -2,
+          data: '用户名密码错误'
+        }
       }
-    }
     }
   } catch (error) {
     console.log(error)
@@ -492,6 +492,7 @@ var Applyrecord = sequelize.define(
     uid: Sequelize.INTEGER(11),
     gid: Sequelize.INTEGER(11),
     finish: Sequelize.STRING(1),
+    result: Sequelize.STRING(1),
   },
   {
     timestamps: true
