@@ -422,6 +422,7 @@ var Rules = sequelize.define(
     tc: Sequelize.FLOAT,
     tf: Sequelize.FLOAT,
     plz: Sequelize.INTEGER(11),
+    type: Sequelize.INTEGER(1)
   },
   {
     timestamps: true
