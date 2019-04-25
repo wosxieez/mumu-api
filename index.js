@@ -36,6 +36,11 @@ router.get('/version_update', async (ctx, next) => {
   ctx.response.body = { code: 0, vn: '1.0.0', ul: 'https://fir.im/niuniu1' }
 })
 
+router.get('/get_notice', async (ctx, next) => {
+  ctx.response.type = 'json'
+  ctx.response.body = { code: 0, data: '欢迎使用牛牛游戏' }
+})
+
 router.get('/crossdomain.xml', async (ctx, next) => {
   ctx.response.type = 'text/xml'
   ctx.response.body = '<?xml version="1.0"?>' +
